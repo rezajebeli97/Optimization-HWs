@@ -130,7 +130,7 @@ def cauchy_point(delta0, efficent, maxIteration):        #delta0 bigger than 0 ,
             tou = 1
         else:
             tou = min(1, np.linalg.norm(g) ** 3 / (delta * condition))
-        pc = (-1 * tou) * ps            #cauchy point
+        pc = tou * ps            #cauchy point
         m_0 = f(x)
         m_pc = f(x + pc) + np.matmul(pc.T, g) + 0.5 * np.matmul(np.matmul(pc.T, b), pc) #[[]]
         efficency = (f(x) - f(x + pc)) / (m_0 - m_pc)
@@ -175,6 +175,6 @@ def compare(beta):
     plotter.show()
 
 
-beta = cauchy_point(1, 0.15, 10000)
+beta = cauchy_point(1, 0.15, 1000)
 # beta = stochastic(5000, 0.01)
 # compare(beta=beta)
