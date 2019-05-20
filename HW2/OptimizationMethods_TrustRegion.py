@@ -4,6 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plotter
 from Function import *
 
+
 # np.seterr(divide='ignore', invalid='ignore')
 
 def cauchy_point(g, b, delta):
@@ -15,7 +16,6 @@ def cauchy_point(g, b, delta):
     else:
         tou = min(1, np.linalg.norm(g) ** 3 / (delta * condition))
     pc = tou * ps  # cauchy point
-
     return pc
 
 
@@ -23,7 +23,6 @@ def dogleg(g, B, delta):
     pb = np.matmul(- 1 * np.linalg.inv(B), g)
     pu = - (np.matmul(g.T, g) / np.matmul(np.matmul(g.T, B), g)) * g
     tou = delta / np.linalg.norm(pu)
-
     if tou >= 0 and tou <= 1:
         p = tou * pu
     elif tou < 2:
@@ -45,6 +44,7 @@ def trust_region(f, delta0, efficent, maxIteration,
     f_x = f.f(x)
     iteration = 0
     efficencies = []
+    fx1_fx = []
 
     while f_x > 0.00000000000000000000000001 and iteration < maxIteration:
         g = np.array(f.gradient(x))
@@ -60,17 +60,6 @@ def trust_region(f, delta0, efficent, maxIteration,
         [[efficency]] = (f.f(x) - f.f(x + p)) / (m_0 - m_p)
         efficencies.append(efficency)
 
-        # print("Iteration: ", iteration+1)
-        # print("x: ", x)
-        print("f(x): ", f_x)
-        # print("gradient: ", g)
-        # print("hessian: ", b)
-        # print("p: ", p)
-        # print("efficency: ", efficency)
-
-
-
-
         if efficency < 0.25:
             delta = 0.25 * delta
         else:
@@ -84,23 +73,23 @@ def trust_region(f, delta0, efficent, maxIteration,
         else:
             x = x
 
-        # print("delta: ", delta)
-        print()
-
         f_x = f.f(x)
+
+        fx1_fx.append(abs(f_x - m_0))
+
         iteration += 1
     print("x = ", x)
     print("f(x) = ", f_x)
-    return x, efficencies
+    return x, efficencies, fx1_fx
 
 
 def draw(x):
-    plotter.ylabel('Ro')
+    plotter.ylabel('|f(xk+1) - f(xk)|')
     plotter.xlabel('step')
     plotter.plot(x)
     plotter.show()
 
 
-f = LeastSquare(100)
-x_star, efficencies = trust_region(f, 1.5, 0.15, 10000, "dogleg")
-draw(efficencies)
+f = Rosenbrock()
+x_star, efficencies, fx1_fx = trust_region(f, 1.5, 0.15, 10000, "dogleg")
+draw(fx1_fx)

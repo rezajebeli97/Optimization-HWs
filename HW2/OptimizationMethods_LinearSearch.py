@@ -10,7 +10,7 @@ def estimate_hessian(x, gradient, b, y, s):
     tmp1 = tmp1 / tmp1_makhraj
 
     tmp2 = np.matmul(y, y.T)
-    [[tmp2_makhraj]] = np.matmul(y.T , s)
+    [[tmp2_makhraj]] = np.matmul(y.T, s)
     tmp2 = tmp2 / tmp2_makhraj
 
     return b - tmp1 + tmp2
@@ -38,38 +38,45 @@ def gradient_descent(f, maxIteration, maxAlpha):
     x = f.initialState()
     f_x = f.f(x)
     iteration = 0
+    steplengths = []
     while f_x > 0.00000000000000000000000001 and iteration < maxIteration:
         g = f.gradient(x)
         p_k = -1 * np.array(g)  # p_k : steepest direction
         alpha = stepLength_backtracking(f, maxAlpha, x, g, p_k, 0.5, 0.5)
+        steplengths.append(alpha)
         x = x + alpha * p_k
         f_x = f.f(x)
         iteration += 1
     print("x = ", x)
     print("f(x) = ", f_x)
-    return x
+    return x, steplengths
 
 def newton(f, maxIteration, maxAlpha):
     x = f.initialState()
     f_x = f.f(x)
     iteration = 0
+    steplengths = []
     while f_x > 0.00000000000000000000000001 and iteration < maxIteration:
         g = f.gradient(x)
         g2 = f.hessian(x)
         p_k = np.matmul(np.linalg.inv(-1 * np.array(g2)), np.array(g))                 # p_k : newton direction
         alpha = stepLength_backtracking(f, maxAlpha, x, g, p_k, 0.5, 0.5)
+        steplengths.append(alpha)
         x = x + alpha * p_k
         f_x = f.f(x)
         iteration += 1
     print("x = ", x)
     print("f(x) = ", f_x)
-    return x
+    return x, steplengths
 
 def quasi_newton_BFGS(f, maxIteration, maxAlpha):
     prevx = None
     x = f.initialState()
+    f_prevx = None
     f_x = f.f(x)
     iteration = 0
+    steplengths = []
+    fx1_fx = []
     b = f.hessian(x)
     while f_x > 0.00000000000000000000000001 and iteration < maxIteration:
         g = f.gradient(x)
@@ -80,16 +87,25 @@ def quasi_newton_BFGS(f, maxIteration, maxAlpha):
 
         p_k = np.matmul(np.linalg.inv(-1 * np.array(b)), np.array(g))                 # p_k : newton direction
         alpha = stepLength_backtracking(f, maxAlpha, x, g, p_k, 0.5, 0.5)
+        steplengths.append(alpha)
         prevx = x
         x = x + alpha * p_k
+        f_prevx = f_x
         f_x = f.f(x)
+        fx1_fx.append(abs(f_x - f_prevx))
         iteration += 1
     print("x = ", x)
     print("f(x) = ", f_x)
-    return x
+    return x, steplengths, fx1_fx
 
 
-f = LeastSquare()
-beta = gradient_descent(f, 10000, 1)
-# beta = stochastic(5000, 0.01)
-# compare(beta=beta)
+def draw(x):
+    plotter.ylabel('Step Length')
+    plotter.xlabel('step')
+    plotter.plot(x)
+    plotter.show()
+
+
+f = Rosenbrock()
+beta, steplengths, fx1_fx = quasi_newton_BFGS(f, 500, 1)
+draw(fx1_fx)
