@@ -29,7 +29,12 @@ def dogleg(g, B, delta):
     elif tou < 2:
         p = pu + (tou - 1) * (pb - pu)
     else:
-        p = pb
+        pb_norm = np.linalg.norm(pb)
+        if pb_norm <= delta:
+            p = pb
+        else:
+            p = (delta / pb_norm) * pb
+
     return p
 
 
@@ -55,21 +60,21 @@ def trust_region(f, delta0, efficent, maxIteration,
         [[efficency]] = (f.f(x) - f.f(x + p)) / (m_0 - m_p)
         efficencies.append(efficency)
 
-
-        # print("x: " , x)
-        # print("f(x): ", f_x)
+        # print("Iteration: ", iteration+1)
+        # print("x: ", x)
+        print("f(x): ", f_x)
         # print("gradient: ", g)
         # print("hessian: ", b)
         # print("p: ", p)
         # print("efficency: ", efficency)
-        # print("delta: ", delta)
+
 
 
 
         if efficency < 0.25:
             delta = 0.25 * delta
         else:
-            if efficency > 0.75 and np.linalg.norm(p) == delta:
+            if efficency > 0.75 and abs(np.linalg.norm(p) - delta) < 0.000001:
                 delta = min(2 * delta, delta0)
             else:
                 delta = delta
@@ -78,6 +83,9 @@ def trust_region(f, delta0, efficent, maxIteration,
             x = x + p
         else:
             x = x
+
+        # print("delta: ", delta)
+        print()
 
         f_x = f.f(x)
         iteration += 1
@@ -93,6 +101,6 @@ def draw(x):
     plotter.show()
 
 
-f = Rosenbrock()
-x_star, efficencies = trust_region(f, 1, 0.15, 20000, "cauchy")
+f = LeastSquare(100)
+x_star, efficencies = trust_region(f, 1.5, 0.15, 10000, "dogleg")
 draw(efficencies)

@@ -55,53 +55,33 @@ class Rosenbrock(Function):
 
 
 class LeastSquare(Function):
-    def f(self, x):
-        n = np.shape(x)[0]
-        b = []
-        for i in range(n):
-            b.append([1])
-
-        A = []
+    def __init__(self, n):
+        self.A = []
+        self.n = n
         for i in range(1, n + 1):
             tmp = []
             for j in range(1, n + 1):
                 tmp.append(1 / (i + j - 1))
-            A.append(tmp)
+            self.A.append(tmp)
 
-        return np.linalg.norm(np.matmul(A, x) - b)
+        self.b = []
+        for i in range(n):
+            self.b.append([1])
+
+    def f(self, x):
+        return np.linalg.norm(np.matmul(self.A, x) - self.b) ** 2
 
     def gradient(self, x):
-        n = np.shape(x)[0]
-        b = []
-        for i in range(n):
-            b.append([1])
-
-        A = []
-        for i in range(1, n + 1):
-            tmp = []
-            for j in range(1, n + 1):
-                tmp.append(1 / (i + j - 1))
-            A.append(tmp)
-
-        b = np.array(b)
-        A = np.array(A)
-        return np.matmul(np.matmul(A.T, A), x) - 2 * np.matmul(A.T, b)
+        self.b = np.array(self.b)
+        self.A = np.array(self.A)
+        return 2 * np.matmul(np.matmul(self.A.T, self.A), x) - 2 * np.matmul(self.A.T, self.b)
 
     def hessian(self, x):
-        n = np.shape(x)[0]
-
-        A = []
-        for i in range(1, n + 1):
-            tmp = []
-            for j in range(1, n + 1):
-                tmp.append(1 / (i + j - 1))
-            A.append(tmp)
-
-        A = np.array(A)
-        return np.matmul(A.T, A)
+        self.A = np.array(self.A)
+        return 2 * np.matmul(self.A.T, self.A)
 
     def initialState(self):
         x = []
-        for i in range(2):
-            x.append([0])
+        for i in range(self.n):
+            x.append([1])
         return x
